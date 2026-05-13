@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aceleradora High Start · Aula 6</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:     #08080f;
+  --card:   #0f0f1a;
+  --card2:  #141420;
+  --border: #ffffff0f;
+  --border2:#ffffff1a;
+  --gold:   #f0b429;
+  --teal:   #00c9a7;
+  --purple: #8b5cf6;
+  --red:    #f87171;
+  --text:   #ece9ff;
+  --muted:  #7c7a9a;
+  --white:  #ffffff;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Syne', sans-serif;
+  background: #050508;
+  color: var(--text);
+}
+
+/* ─── SHELL ─────────────────────────────── */
+#app {
+  width: 100vw; height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── TOP BAR ───────────────────────────── */
+#topbar {
+  flex-shrink: 0;
+  height: 44px;
+  background: rgba(8,8,15,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+}
+#topbar-brand {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex; align-items: center; gap: 8px;
+}
+#topbar-brand b {
+  background: var(--gold);
+  color: #000;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+#topbar-nav {
+  display: flex; align-items: center; gap: 8px;
+}
+.tbtn {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  height: 28px; padding: 0 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 600;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.tbtn:hover { background: var(--gold); color: #000; border-color: var(--gold); }
+.tbtn:disabled { opacity: .25; pointer-events: none; }
+#counter {
+  font-size: 11px; color: var(--muted);
+  min-width: 52px; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── PROGRESS ──────────────────────────── */
+#progress-wrap {
+  flex-shrink: 0;
+  height: 2px;
+  background: #ffffff08;
+}
+#progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--teal));
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ─── MAIN AREA ─────────────────────────── */
+#main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* ─── SIDEBAR ───────────────────────────── */
+#sidebar {
+  width: 168px;
+  flex-shrink: 0;
+  background: rgba(8,8,15,.7);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.sthumb {
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 7px 10px;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sthumb:hover { border-color: #f0b42944; background: #0f0f1c; }
+.sthumb.active { border-color: var(--gold); background: #f0b42910; }
+.sthumb-num {
+  font-size: 10px; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 14px;
+  flex-shrink: 0;
+}
+.sthumb.active .sthumb-num { color: var(--gold); }
+.sthumb-label {
+  font-size: 10px; color: var(--muted);
+  white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.sthumb.active .sthumb-label { color: var(--text); }
+.sthumb-section {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 8px 4px 4px;
+  opacity: .5;
+}
+
+/* ─── STAGE AREA ────────────────────────── */
+#stage-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #050508;
+}
+#stage-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#stage {
+  aspect-ratio: 16/9;
+  width: 100%;
+  max-height: 100%;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,.8), 0 0 0 1px var(--border2);
+  cursor: pointer;
+}
+
+/* ─── SLIDES ────────────────────────────── */
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease;
+  transform: translateX(30px);
+  overflow: hidden;
+}
+.slide.active {
+  opacity: 1; pointer-events: all;
+  transform: translateX(0);
+}
+.slide.exit {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+/* ─── SLIDE INNER ───────────────────────── */
+.si {
+  width: 100%; height: 100%;
+  padding: 5% 6%;
+  display: flex; flex-direction: column;
+  position: relative; z-index: 2;
+  gap: 0;
+}
+
+/* ─── BACKGROUNDS ───────────────────────── */
+.bg-dark   { background: #0c0c18; }
+.bg-gold   { background: linear-gradient(145deg,#150f05 0%,#0a0a0f 55%); }
+.bg-teal   { background: linear-gradient(145deg,#031110 0%,#08080f 55%); }
+.bg-purple { background: linear-gradient(145deg,#0e081a 0%,#08080f 55%); }
+.bg-red    { background: linear-gradient(145deg,#160808 0%,#08080f 55%); }
+
+/* decorative glow spots */
+.slide::after {
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+}
+.bg-gold::after  { background: radial-gradient(ellipse at 85% 15%,#f0b42910,transparent 55%); }
+.bg-teal::after  { background: radial-gradient(ellipse at 85% 15%,#00c9a710,transparent 55%); }
+.bg-purple::after{ background: radial-gradient(ellipse at 85% 15%,#8b5cf610,transparent 55%); }
+
+/* ─── TYPOGRAPHY ────────────────────────── */
+h1,h2,h3,h4 { font-family: 'Cormorant Garamond', serif; }
+
+.slide-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(8px,.9vw,11px);
+  font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase;
+  padding: 3px 11px; border-radius: 99px;
+  margin-bottom: clamp(6px,.8vw,12px);
+  width: fit-content; flex-shrink: 0;
+}
+.tg  { background:#f0b42918; color:var(--gold);   border:1px solid #f0b42933; }
+.tt  { background:#00c9a718; color:var(--teal);   border:1px solid #00c9a733; }
+.tp  { background:#8b5cf618; color:var(--purple); border:1px solid #8b5cf633; }
+.tr  { background:#f8717118; color:var(--red);    border:1px solid #f8717133; }
+
+.slide h2 {
+  font-size: clamp(20px,3vw,38px);
+  font-weight: 600; font-style: italic;
+  line-height: 1.08; letter-spacing: -.01em;
+  color: var(--white);
+  margin-bottom: clamp(8px,1vw,14px);
+  flex-shrink: 0;
+}
+.slide h2 em { color: var(--gold); font-style: normal; }
+
+.muted { color: var(--muted); }
+.gold  { color: var(--gold); }
+.teal  { color: var(--teal); }
+.purp  { color: var(--purple); }
+.red-c { color: var(--red); }
+.white { color: var(--white); }
+
+/* ─── FLEX HELPERS ──────────────────────── */
+.col  { display:flex; flex-direction:column; }
+.row  { display:flex; align-items:center; }
+.flex1{ flex:1; min-height:0; }
+.gap4 { gap: clamp(6px,.6vw,10px); }
+.gap6 { gap: clamp(8px,.8vw,14px); }
+.gap8 { gap: clamp(10px,1vw,18px); }
+.center { align-items:center; justify-content:center; }
+
+/* ─── CARDS ─────────────────────────────── */
+.card {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: clamp(8px,.8vw,12px);
+  padding: clamp(10px,1.1vw,16px) clamp(12px,1.3vw,18px);
+  display: flex; flex-direction: column;
+  gap: clamp(4px,.5vw,8px);
+}
+.card-icon { font-size: clamp(16px,1.8vw,22px); }
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 600; color: var(--white);
+}
+.card p {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(10px,.9vw,12px);
+  color: var(--muted); line-height: 1.55;
+}
+
+/* ─── PILLAR CARDS ──────────────────────── */
+.pillar {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: clamp(8px,.8vw,12px);
+  padding: clamp(14px,1.5vw,22px) clamp(14px,1.4vw,20px);
+  display: flex; flex-direction: column;
+  gap: clamp(6px,.7vw,10px);
+  position: relative; overflow: hidden;
+  flex: 1;
+}
+.pillar::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  border-radius:12px 12px 0 0;
+}
+.pg::before { background:var(--gold); }
+.pt::before { background:var(--teal); }
+.pp::before { background:var(--purple); }
+.pillar .picon { font-size: clamp(20px,2.2vw,30px); }
+.pillar h4 {
+  font-family:'Syne',sans-serif;
+  font-size: clamp(12px,1.2vw,16px);
+  font-weight:700; color:var(--white);
+}
+.pillar p {
+  font-family:'Syne',sans-serif;
+  font-size: clamp(10px,1vw,13px);
+  color:var(--muted); line-height:1.6;
+}
+
+/* ─── GRID LAYOUTS ──────────────────────── */
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,1vw,16px); flex:1; min-height:0; }
+.g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:clamp(8px,.9vw,14px); flex:1; min-height:0; }
+
+/* ─── TABLE ─────────────────────────────── */
+.tbl {
+  width:100%; border-collapse:collapse;
+  font-family:'Syne',sans-serif;
+  font-size: clamp(9px,.9vw,12px);
+  flex:1;
+}
+.tbl th {
+  background:#ffffff08; color:var(--muted);
+  font-size: clamp(8px,.75vw,10px);
+  letter-spacing:.1em; text-transform:uppercase;
+  padding: clamp(5px,.6vw,8px) clamp(8px,.9vw,12px);
+  text-align:left; border-bottom:1px solid var(--border);
+  font-weight:700;
+}
+.tbl td {
+  padding: clamp(4px,.5vw,7px) clamp(8px,.9vw,12px);
+  border-bottom:1px solid var(--border);
+  color:#c4c2de; vertical-align:top; line-height:1.5;
+}
+.tbl tr:last-child td { border-bottom:none; }
+.tbl tr:hover td { background:#ffffff04; }
+.tbl td:first-child { color:var(--white); font-weight:600; }
+
+/* ─── HBOX ──────────────────────────────── */
+.hbox {
+  background: linear-gradient(135deg,#f0b42915,#00c9a70c);
+  border:1px solid #f0b42928;
+  border-radius: clamp(6px,.7vw,10px);
+  padding: clamp(8px,.9vw,12px) clamp(12px,1.3vw,18px);
+  font-family:'Syne',sans-serif;
+  font-size: clamp(10px,.95vw,13px);
+  color:var(--gold); font-weight:500; line-height:1.55;
+  flex-shrink:0; margin-top:auto;
+}
+.hbox.t { background:linear-gradient(135deg,#00c9a715,#8b5cf60c); border-color:#00c9a728; color:var(--teal); }
+.hbox.p { background:linear-gradient(135deg,#8b5cf615,#f8717110); border-color:#8b5cf628; color:var(--purple); }
+
+/* ─── LIST ──────────────────────────────── */
+.sl { list-style:none; display:flex; flex-direction:column; gap:clamp(5px,.6vw,9px); }
+.sl li {
+  font-family:'Syne',sans-serif;
+  font-size: clamp(10px,1vw,13px);
+  color:#c4c2de; line-height:1.6;
+  display:flex; gap:8px; align-items:flex-start;
+}
+.sl li::before { content:"→"; color:var(--gold); flex-shrink:0; }
+.sl.t li::before { content:"◆"; color:var(--teal); }
+.sl.ck li::before { content:"✓"; color:var(--teal); }
+.sl li strong { color:var(--white); }
+
+/* ─── BIG NUMBER ────────────────────────── */
+.bignum {
+  font-family:'Cormorant Garamond',serif;
+  font-size: clamp(36px,5vw,68px);
+  font-weight:700; line-height:1;
+}
+
+/* ─── JOURNEY ───────────────────────────── */
+.journey {
+  display:flex; align-items:center; justify-content:center;
+  flex:1; min-height:0; gap:0;
+}
+.jstep {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; gap:clamp(5px,.6vw,8px);
+}
+.jcircle {
+  width:clamp(36px,4vw,52px); height:clamp(36px,4vw,52px);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:clamp(16px,1.8vw,22px);
+}
+.jlabel {
+  font-family:'Syne',sans-serif; font-weight:700;
+  font-size:clamp(9px,.9vw,12px); text-align:center; color:var(--white);
+}
+.jsub {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(8px,.75vw,10px); color:var(--muted);
+  text-align:center; line-height:1.5; max-width:90px;
+}
+.jarrow { font-size:clamp(14px,1.5vw,20px); color:var(--gold); flex-shrink:0; padding-bottom:20px; }
+
+/* ─── DIVIDER SLIDE ─────────────────────── */
+.div-slide {
+  background:linear-gradient(145deg,#0d0d18,#0a0a12);
+  align-items:center; justify-content:center;
+}
+.div-slide::after {
+  background: radial-gradient(ellipse at 50% 50%,#f0b42908,transparent 65%);
+}
+.div-bg-num {
+  font-family:'Cormorant Garamond',serif;
+  font-size: clamp(80px,12vw,160px); font-weight:800;
+  opacity:.04; position:absolute; right:5%; bottom:4%;
+  color:#fff; line-height:1; user-select:none; z-index:1;
+}
+.div-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size: clamp(28px,4.5vw,56px);
+  font-weight:600; font-style:italic;
+  color:var(--white); text-align:center; line-height:1.1;
+}
+.div-sub {
+  font-family:'Syne',sans-serif;
+  font-size: clamp(11px,1.1vw,14px);
+  color:var(--muted); text-align:center; max-width:60%;
+}
+
+/* ─── ACTIVITY ──────────────────────────── */
+.activity-box {
+  background:linear-gradient(135deg,#150f25,#0c1018);
+  border:1px solid #8b5cf630;
+  border-radius:clamp(8px,.8vw,12px);
+  padding:clamp(14px,1.5vw,22px) clamp(14px,1.5vw,22px);
+  flex:1; display:flex; flex-direction:column;
+  gap:clamp(10px,1vw,16px);
+}
+.astep { display:flex; align-items:flex-start; gap:clamp(8px,.9vw,12px); }
+.anum {
+  width:clamp(20px,2vw,26px); height:clamp(20px,2vw,26px);
+  border-radius:50%; background:var(--purple); color:#fff;
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(10px,.9vw,12px);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.atext {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(10px,.95vw,13px); color:#c4c2de; line-height:1.6;
+}
+.atext strong { color:var(--white); }
+
+/* ─── RECAP ITEMS ───────────────────────── */
+.recap-item {
+  display:flex; align-items:center; gap:clamp(8px,.9vw,13px);
+  padding:clamp(7px,.8vw,10px) clamp(10px,1.1vw,14px);
+  border-radius:clamp(6px,.7vw,10px);
+  background:var(--card2); border:1px solid var(--border);
+}
+.rnum {
+  font-family:'Cormorant Garamond',serif;
+  font-weight:600; font-size:clamp(14px,1.5vw,18px);
+  color:var(--gold); min-width:16px;
+}
+.rtext {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(10px,.9vw,12px); color:#c4c2de;
+}
+.rtext strong { color:var(--white); }
+
+/* ─── STEP REVEAL ───────────────────────── */
+[data-step] {
+  opacity:0; transform:translateY(10px);
+  transition:opacity .38s ease, transform .38s ease;
+}
+[data-step].on { opacity:1; transform:translateY(0); }
+
+/* ─── STEP INDICATOR ────────────────────── */
+#step-indicator {
+  position:absolute; bottom:16px; right:20px;
+  display:flex; gap:5px; z-index:20;
+}
+.sdot {
+  width:5px; height:5px; border-radius:50%;
+  background:rgba(255,255,255,.12);
+  transition:background .2s;
+}
+.sdot.on { background:var(--gold); }
+
+/* ─── BOTTOM BAR ────────────────────────── */
+#bottombar {
+  flex-shrink:0; height:36px;
+  background:rgba(8,8,15,.85);
+  border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  gap:8px; padding:0 16px;
+  font-family:'Syne',sans-serif; font-size:10px; color:var(--muted);
+  opacity:.5;
+}
+#bottombar kbd {
+  background:var(--card2); border:1px solid var(--border2);
+  border-radius:3px; padding:1px 5px; font-size:9px;
+}
+
+/* ─── SLIDE 1 SPECIAL ───────────────────── */
+#s1 { background:radial-gradient(ellipse at 70% 30%,#1a1030,#08080f 65%); }
+#s1::after {
+  background:
+    radial-gradient(circle at 80% 20%,#f0b42912,transparent 45%),
+    radial-gradient(circle at 5% 85%,#00c9a70e,transparent 45%);
+}
+.s1-logo {
+  font-family:'Syne',sans-serif; font-size:clamp(9px,.9vw,11px); font-weight:800;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--gold);
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:clamp(16px,2vw,26px);
+}
+.s1-logo b { background:var(--gold); color:#000; padding:2px 8px; border-radius:3px; }
+.s1-sub-label {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(9px,.9vw,11px); letter-spacing:.1em; text-transform:uppercase;
+  color:var(--teal); margin-bottom:clamp(8px,1vw,12px);
+}
+.s1-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(26px,4vw,52px);
+  font-weight:600; font-style:italic;
+  line-height:1.06; color:var(--white);
+  margin-bottom:clamp(10px,1.2vw,16px);
+}
+.s1-title em { color:var(--gold); font-style:normal; }
+.s1-desc {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(11px,1.1vw,14px); color:var(--muted);
+  max-width:480px; line-height:1.7;
+  margin-bottom:clamp(14px,1.8vw,22px);
+}
+.s1-badge {
+  background:linear-gradient(135deg,#f0b42918,#00c9a712);
+  border:1px solid #f0b42933;
+  border-radius:8px; padding:clamp(8px,.9vw,12px) clamp(14px,1.5vw,20px);
+  font-family:'Syne',sans-serif;
+  font-size:clamp(10px,1vw,13px); font-weight:700; color:var(--gold);
+  width:fit-content;
+}
+.s1-deco {
+  position:absolute; right:-2%; top:50%; transform:translateY(-50%);
+  font-size:clamp(100px,16vw,200px); opacity:.035; z-index:0; user-select:none;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div id="topbar-brand"><b>HIGH START</b> Aceleradora</div>
+  <div id="topbar-nav">
+    <button class="tbtn" id="btnPrev" onclick="prev()" disabled>← Anterior</button>
+    <span id="counter">1 / 21</span>
+    <button class="tbtn" id="btnNext" onclick="next()">Próximo →</button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress-wrap"><div id="progress-fill"></div></div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar" id="sidebar"></div>
+
+  <!-- STAGE AREA -->
+  <div id="stage-area">
+    <div id="stage-wrap">
+      <div id="stage">
+
+<!-- ═══════ S1 · ABERTURA ═══════ -->
+<div class="slide active" id="s1">
+<div class="s1-deco">🚀</div>
+<div class="si" style="justify-content:center;">
+  <div class="s1-logo" data-step="0"><b>HIGH START</b> Aceleradora</div>
+  <div class="s1-sub-label" data-step="1">✦ Aula 6 de 6 · A Última Peça do Quebra-Cabeça</div>
+  <div class="s1-title" data-step="2">Gestão de Entregas<br/><em>High Ticket:</em><br/>Resultados, LTV<br/>e Indicações 🏆</div>
+  <div class="s1-desc" data-step="3">Hoje você sai com sua estrutura de entrega pronta · e a base para faturar R$30k+/mês de forma sustentável.</div>
+  <div class="s1-badge" data-step="4">🎯 Última Aula → Saia com sua estrutura pronta!</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S2 · RECAP ═══════ -->
+<div class="slide bg-dark" id="s2">
+<div class="si gap4">
+  <div class="slide-tag tg" data-step="0">📚 Recap do Programa</div>
+  <h2 data-step="1">Tudo que você construiu até aqui</h2>
+  <div class="col flex1 gap4" data-step="2">
+    <div class="recap-item"><span class="rnum">1</span><span class="rtext"><strong>Oferta Irresistível</strong> · Produto high ticket que justifica R$3k+</span></div>
+    <div class="recap-item"><span class="rnum">2</span><span class="rtext"><strong>Posicionamento Estratégico</strong> · Comunicação que atrai o cliente certo</span></div>
+    <div class="recap-item"><span class="rnum">3</span><span class="rtext"><strong>Conteúdo QGV</strong> · 4 tipos que geram vendas sem depender de ads</span></div>
+    <div class="recap-item"><span class="rnum">4</span><span class="rtext"><strong>Funis de Conversão</strong> · 3 funis simples baseados em conteúdo</span></div>
+    <div class="recap-item"><span class="rnum">5</span><span class="rtext"><strong>Estrutura Comercial</strong> · Playbook, follow-up e objeções resolvidas</span></div>
+  </div>
+  <div class="hbox" data-step="3">🔥 Hoje: <strong>Entrega que fideliza, gera LTV e escala</strong> · o passo que a maioria ignora!</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S3 · POR QUE ═══════ -->
+<div class="slide bg-gold" id="s3">
+<div class="si gap4">
+  <div class="slide-tag tg" data-step="0">💡 Por Que Isso Importa?</div>
+  <h2 data-step="1">Entrega estruturada = <em>Dinheiro automático</em></h2>
+  <div class="g2" data-step="2">
+    <!-- esquerda: 3 cards -->
+    <div class="col gap4">
+      <div class="card flex1">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Clientes com resultado</div>
+        <p>Transformação real → cliente feliz e vocal</p>
+      </div>
+      <div class="card flex1">
+        <div class="card-icon">♻️</div>
+        <div class="card-title">Renovam (LTV 3x+)</div>
+        <p>1 cliente pode pagar 3x ou mais ao longo do tempo</p>
+      </div>
+      <div class="card flex1">
+        <div class="card-icon">📣</div>
+        <div class="card-title">Indicam (vendas grátis)</div>
+        <p>Cada cliente vira um vendedor voluntário</p>
+      </div>
+    </div>
+    <!-- direita: exemplo real -->
+    <div class="col center" style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:5% 6%;gap:clamp(6px,.7vw,10px);">
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(9px,.8vw,11px);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">Exemplo real</div>
+      <div class="bignum gold">R$15k</div>
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(10px,.9vw,12px);color:var(--muted);">mentoria fatura hoje</div>
+      <div style="font-size:clamp(20px,2.5vw,32px);color:var(--teal);">↓ com LTV</div>
+      <div class="bignum teal">R$45k+</div>
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(10px,.9vw,12px);color:var(--muted);">mesmo número de clientes</div>
+    </div>
+  </div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S4 · 3 PILARES ═══════ -->
+<div class="slide bg-dark" id="s4">
+<div class="si gap4">
+  <div class="slide-tag tt" data-step="0">🗺️ Visão Geral</div>
+  <h2 data-step="1">Os 3 Pilares da Entrega High Ticket</h2>
+  <div class="g3" data-step="2">
+    <div class="pillar pg">
+      <div class="picon">🗺️</div>
+      <h4>1. Jornada do Cliente</h4>
+      <p>Do onboarding até a renovação. Cada etapa com clareza total para você e para o cliente.</p>
+    </div>
+    <div class="pillar pt">
+      <div class="picon">🔄</div>
+      <h4>2. Renovação</h4>
+      <p>Estratégias para o cliente querer continuar. LTV alto = negócio sustentável sem caçar novos clientes todo mês.</p>
+    </div>
+    <div class="pillar pp">
+      <div class="picon">⚙️</div>
+      <h4>3. Acompanhamento</h4>
+      <p>3 tipos: Personalização, Aceleração e Acompanhamento · o que separa um serviço mediano de um high ticket de verdade.</p>
+    </div>
+  </div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S5 · DIVIDER JORNADA ═══════ -->
+<div class="slide div-slide" id="s5">
+<div class="div-bg-num">1</div>
+<div class="si center gap6">
+  <div class="slide-tag tg" data-step="1">Parte 1 de 3</div>
+  <div class="div-title" data-step="2">🗺️ Jornada do<br/>Cliente</div>
+  <div class="div-sub" data-step="3">Do "olá" ao "quero renovar!" · sem deixar nada ao acaso</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S6 · MAPA DA JORNADA ═══════ -->
+<div class="slide bg-gold" id="s6">
+<div class="si gap4">
+  <div class="slide-tag tg" data-step="0">🗺️ Mapa da Jornada</div>
+  <h2 data-step="1">4 etapas que todo cliente precisa viver</h2>
+  <div class="journey" data-step="2">
+    <div class="jstep">
+      <div class="jcircle" style="background:#f0b42920;border:2px solid var(--gold);">🚪</div>
+      <div class="jlabel">Onboarding</div>
+      <div class="jsub">Boas-vindas, diagnóstico, acesso às ferramentas</div>
+    </div>
+    <div class="jarrow">→</div>
+    <div class="jstep">
+      <div class="jcircle" style="background:#00c9a720;border:2px solid var(--teal);">🔧</div>
+      <div class="jlabel">Implementação</div>
+      <div class="jsub">Execução, acompanhamento, ajustes no caminho</div>
+    </div>
+    <div class="jarrow">→</div>
+    <div class="jstep">
+      <div class="jcircle" style="background:#8b5cf620;border:2px solid var(--purple);">🏆</div>
+      <div class="jlabel">Resultados</div>
+      <div class="jsub">Métricas, depoimentos, celebração das vitórias</div>
+    </div>
+    <div class="jarrow">→</div>
+    <div class="jstep">
+      <div class="jcircle" style="background:#f8717120;border:2px solid var(--red);">🔄</div>
+      <div class="jlabel">Renovação</div>
+      <div class="jsub">Próximo nível, upsell, indicação</div>
+    </div>
+  </div>
+  <div class="hbox" data-step="3">📌 Regra de ouro: o cliente precisa saber onde está na jornada a qualquer momento!</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S7 · MENTORIA vs SERVIÇO ═══════ -->
+<div class="slide bg-dark" id="s7">
+<div class="si gap4">
+  <div class="slide-tag tt" data-step="0">🔧 Mentoria vs Serviço</div>
+  <h2 data-step="1">Como aplicar em cada modelo</h2>
+  <table class="tbl flex1" data-step="2">
+    <thead><tr><th>Etapa</th><th>Mentoria</th><th>Serviço B2B/B2C</th></tr></thead>
+    <tbody>
+      <tr><td>🚪 Onboarding</td><td>Call diagnóstico + acesso à trilha + grupo VIP</td><td>Reunião de briefing + login no dashboard + cronograma</td></tr>
+      <tr><td>🔧 Implementação</td><td>Calls semanais + materiais + hotseats</td><td>Entregas por sprint + relatórios + check-ins</td></tr>
+      <tr><td>🏆 Resultados</td><td>Revisão de metas + depoimento + caso de sucesso</td><td>Apresentação de resultados + ROI + feedback</td></tr>
+      <tr><td>🔄 Renovação</td><td>Proposta de próximo nível + bônus exclusivo</td><td>Expansão de escopo + contrato renovado</td></tr>
+    </tbody>
+  </table>
+  <div class="hbox t" data-step="3">💡 Simples assim: documente cada etapa no Notion ou num papel e compartilhe com o cliente!</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S8 · DIVIDER RENOVAÇÃO ═══════ -->
+<div class="slide div-slide" id="s8">
+<div class="div-bg-num">2</div>
+<div class="si center gap6">
+  <div class="slide-tag tt" data-step="1">Parte 2 de 3</div>
+  <div class="div-title" data-step="2">🔄 Renovação</div>
+  <div class="div-sub" data-step="3">Transforme 1 contrato em 3 · sem precisar caçar novos clientes</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S9 · ESTRATÉGIAS RENOVAÇÃO ═══════ -->
+<div class="slide bg-teal" id="s9">
+<div class="si gap4">
+  <div class="slide-tag tt" data-step="0">🔄 Estratégias de Renovação</div>
+  <h2 data-step="1">Como fazer o cliente querer continuar</h2>
+  <div class="g2 flex1" data-step="2">
+    <ul class="sl t flex1">
+      <li><strong>Check-ins de resultado:</strong> mostrar progresso antes da renovação (semana 10 de 12)</li>
+      <li><strong>Upsell natural:</strong> "você avançou tanto · o próximo nível vai te levar para X"</li>
+      <li><strong>Depoimento antes da renovação:</strong> pedir feedback gera reflexão positiva</li>
+      <li><strong>Bônus de continuidade:</strong> algo exclusivo para quem renova (sessão extra, acesso vitalício)</li>
+    </ul>
+    <div class="col gap4">
+      <div class="card flex1">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Métrica-chave</div>
+        <div class="bignum teal" style="font-size:clamp(32px,4.5vw,58px)">70%+</div>
+        <p>Taxa de renovação mínima para escalar com previsibilidade</p>
+      </div>
+      <div class="hbox t" style="margin-top:0;font-size:clamp(9px,.85vw,12px)">💡 Abaixo de 70%? Problema está na entrega, não na venda!</div>
+    </div>
+  </div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S10 · LTV ═══════ -->
+<div class="slide bg-gold" id="s10">
+<div class="si gap4">
+  <div class="slide-tag tg" data-step="0">💰 O Poder do LTV</div>
+  <h2 data-step="1">Por que renovação > aquisição</h2>
+  <div class="g2 flex1" data-step="2">
+    <div class="col gap4">
+      <div class="card flex1">
+        <div class="card-title">❌ Sem LTV (só aquisição)</div>
+        <p>R$5k × 6 novos clientes/mês = R$30k → Precisa sempre buscar novos, custo de aquisição alto</p>
+      </div>
+      <div class="card flex1">
+        <div class="card-title">✅ Com LTV (renovação)</div>
+        <p>R$5k × 3 novos + R$5k × 3 renovações = R$30k → Menos pressão, mais previsibilidade</p>
+      </div>
+    </div>
+    <div class="col center" style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:5%;gap:clamp(6px,.7vw,10px);">
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(10px,.9vw,12px);color:var(--muted);">Custo para renovar vs adquirir</div>
+      <div style="display:flex;gap:clamp(16px,2vw,28px);align-items:flex-end;">
+        <div style="text-align:center;">
+          <div class="bignum red-c" style="font-size:clamp(30px,4vw,52px);">5x</div>
+          <div style="font-family:'Syne',sans-serif;font-size:clamp(9px,.8vw,11px);color:var(--muted);">mais caro adquirir</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="bignum teal" style="font-size:clamp(30px,4vw,52px);">1x</div>
+          <div style="font-family:'Syne',sans-serif;font-size:clamp(9px,.8vw,11px);color:var(--muted);">renovar</div>
+        </div>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(12px,1.2vw,16px);font-weight:700;color:var(--gold);text-align:center;">Fidelizar é o melhor investimento!</div>
+    </div>
+  </div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S11 · DIVIDER ACOMPANHAMENTO ═══════ -->
+<div class="slide div-slide" id="s11">
+<div class="div-bg-num">3</div>
+<div class="si center gap6">
+  <div class="slide-tag tp" data-step="1">Parte 3 de 3</div>
+  <div class="div-title" data-step="2">⚙️ Os 3 Tipos de<br/>Acompanhamento</div>
+  <div class="div-sub" data-step="3">Personalização · Aceleração · Acompanhamento · o que faz um high ticket valer cada centavo</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S12 · PERSONALIZAÇÃO 1 ═══════ -->
+<div class="slide bg-dark" id="s12">
+<div class="si gap4">
+  <div class="slide-tag tg" data-step="0">✨ Tipo 1 · Personalização</div>
+  <h2 data-step="1">Entregáveis que aumentam valor & exclusividade</h2>
+  <table class="tbl flex1" data-step="2">
+    <thead><tr><th>#</th><th>Ideia</th><th>Ex. Mentoria</th><th>Ex. Serviço</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Sessões individuais extras</td><td>Call 1:1 bônus por meta</td><td>Reunião estratégica adicional</td></tr>
+      <tr><td>2</td><td>Plano de desenvolvimento pessoal</td><td>PDI trimestral</td><td>Roadmap personalizado</td></tr>
+      <tr><td>3</td><td>Revisões de materiais</td><td>Review de copy/proposta</td><td>Revisão de contrato/pitch</td></tr>
+      <tr><td>4</td><td>Diagnósticos específicos</td><td>Análise de posicionamento</td><td>Diagnóstico de funil B2B</td></tr>
+      <tr><td>5</td><td>Grupo VIP exclusivo</td><td>Mastermind fechado</td><td>Slack VIP do projeto</td></tr>
+    </tbody>
+  </table>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S13 · PERSONALIZAÇÃO 2 ═══════ -->
+<div class="slide bg-gold" id="s13">
+<div class="si gap4">
+  <div class="slide-tag tg" data-step="0">✨ Tipo 1 · Personalização (cont.)</div>
+  <h2 data-step="1">Mais 5 ideias de alto impacto</h2>
+  <table class="tbl flex1" data-step="2">
+    <thead><tr><th>#</th><th>Ideia</th><th>Ex. Mentoria</th><th>Ex. Serviço</th></tr></thead>
+    <tbody>
+      <tr><td>6</td><td>Acompanhamento de metas</td><td>Planilha de OKRs compartilhada</td><td>Dashboard de KPIs do cliente</td></tr>
+      <tr><td>7</td><td>Relatórios personalizados</td><td>Relatório mensal de evolução</td><td>Relatório de performance</td></tr>
+      <tr><td>8</td><td>Materiais customizados</td><td>Swipe file personalizado</td><td>Manual de marca específico</td></tr>
+      <tr><td>9</td><td>Presente físico surpresa</td><td>Livro + carta manuscrita</td><td>Kit de boas-vindas premium</td></tr>
+      <tr><td>10</td><td>Surpresa de conclusão</td><td>Certificado personalizado</td><td>Relatório de impacto final</td></tr>
+    </tbody>
+  </table>
+  <div class="hbox" data-step="3">💡 Use pelo menos <strong>2–3 desses</strong> no seu programa · eles justificam preço alto e geram depoimentos espontâneos!</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S14 · ACELERAÇÃO ═══════ -->
+<div class="slide bg-teal" id="s14">
+<div class="si gap4">
+  <div class="slide-tag tt" data-step="0">⚡ Tipo 2 · Aceleração</div>
+  <h2 data-step="1">Resultados rápidos com menos esforço do cliente</h2>
+  <table class="tbl flex1" data-step="2">
+    <thead><tr><th>#</th><th>Ideia</th><th>Ex. Mentoria</th><th>Ex. Serviço</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Trilhas SOS</td><td>Mini-curso "quebra-galho"</td><td>Guia rápido de crise</td></tr>
+      <tr><td>2</td><td>Checklists rápidos</td><td>Checklist de lançamento 7 dias</td><td>Checklist de onboarding</td></tr>
+      <tr><td>3</td><td>Desafios gamificados</td><td>Desafio 21 dias de vendas</td><td>Sprint de implementação</td></tr>
+      <tr><td>4</td><td>Frameworks visuais</td><td>Mapa mental de posicionamento</td><td>Fluxograma de processo</td></tr>
+      <tr><td>5</td><td>Templates prontos</td><td>Templates de stories + copy</td><td>Modelos de proposta comercial</td></tr>
+      <tr><td>6</td><td>Planilhas automatizadas</td><td>Planilha de precificação</td><td>Planilha de gestão de caixa</td></tr>
+      <tr><td>7</td><td>Eventos de imersão</td><td>Intensivão ao vivo mensal</td><td>Workshop trimestral</td></tr>
+      <tr><td>8</td><td>Biblioteca de recursos</td><td>Vault de swipe files</td><td>Hub de referências do setor</td></tr>
+    </tbody>
+  </table>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S15 · MONITORIA MENTORIA ═══════ -->
+<div class="slide bg-purple" id="s15">
+<div class="si gap4">
+  <div class="slide-tag tp" data-step="0">📊 Tipo 3 · Acompanhamento (Mentoria)</div>
+  <h2 data-step="1">Acompanhamento contínuo para mentorias</h2>
+  <table class="tbl flex1" data-step="2">
+    <thead><tr><th>#</th><th>Entregável</th><th>Como funciona</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Dashboard de evolução</td><td>Notion/Google Sheets com métricas do aluno</td></tr>
+      <tr><td>2</td><td>Check-ins semanais</td><td>Form ou lembrete automático de progresso</td></tr>
+      <tr><td>3</td><td>Revisões de resultados</td><td>Call quinzenal de análise</td></tr>
+      <tr><td>4</td><td>Grupos de networking</td><td>Comunidade de alunos ativos</td></tr>
+      <tr><td>5</td><td>Grupos de suporte</td><td>WhatsApp/Telegram para dúvidas rápidas</td></tr>
+      <tr><td>6</td><td>Gamificação</td><td>Ranking de implementação no grupo</td></tr>
+      <tr><td>7</td><td>Calls de CS</td><td>Call de sucesso do cliente no mês 2</td></tr>
+      <tr><td>8</td><td>Análise de engajamento</td><td>Ação proativa se aluno some por 7 dias</td></tr>
+    </tbody>
+  </table>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S16 · MONITORIA SERVIÇOS ═══════ -->
+<div class="slide bg-dark" id="s16">
+<div class="si gap4">
+  <div class="slide-tag tt" data-step="0">📊 Tipo 3 · Acompanhamento (Serviços)</div>
+  <h2 data-step="1">Acompanhamento contínuo para serviços B2B/B2C</h2>
+  <table class="tbl flex1" data-step="2">
+    <thead><tr><th>#</th><th>Entregável</th><th>Como funciona</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Dashboards de progresso</td><td>Looker Studio / Notion com KPIs em tempo real</td></tr>
+      <tr><td>2</td><td>Reuniões de refinamento</td><td>Bi-weekly para ajustes de escopo</td></tr>
+      <tr><td>3</td><td>Suporte para dúvidas</td><td>Canal dedicado com SLA de resposta</td></tr>
+      <tr><td>4</td><td>Relatórios de feedback</td><td>NPS mensal + análise de satisfação</td></tr>
+      <tr><td>5</td><td>Registro de evolução</td><td>Histórico de versões e decisões</td></tr>
+      <tr><td>6</td><td>Cronograma visual</td><td>Kanban compartilhado (Trello/Notion)</td></tr>
+      <tr><td>7</td><td>Alertas proativos</td><td>Notificação antes de riscos acontecerem</td></tr>
+      <tr><td>8</td><td>Revisões periódicas</td><td>QBR (revisão trimestral de negócio)</td></tr>
+    </tbody>
+  </table>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S17 · RESUMO 3 TIPOS ═══════ -->
+<div class="slide bg-grad" id="s17" style="background:radial-gradient(ellipse at 30% 50%,#130d20,#08080f 70%)">
+<div class="si gap4">
+  <div class="slide-tag tp" data-step="0">🧩 Resumo dos 3 Tipos</div>
+  <h2 data-step="1">Qual escolher para o seu negócio?</h2>
+  <table class="tbl flex1" data-step="2">
+    <thead><tr><th>Tipo</th><th>Objetivo</th><th>Quando usar</th><th>Impacto</th></tr></thead>
+    <tbody>
+      <tr><td class="gold">✨ Personalização</td><td>Aumentar valor percebido</td><td>Tickets mais altos (R$5k+)</td><td>⭐⭐⭐ Depoimentos espontâneos</td></tr>
+      <tr><td class="teal">⚡ Aceleração</td><td>Gerar resultados rápidos</td><td>Clientes impacientes, novos</td><td>⭐⭐⭐ Reduz abandono</td></tr>
+      <tr><td class="purp">📊 Acompanhamento</td><td>Garantir implementação</td><td>Programas longos (+90 dias)</td><td>⭐⭐⭐ Aumenta renovação</td></tr>
+    </tbody>
+  </table>
+  <div class="hbox p" data-step="3">🏆 Combinação ideal: 1 de Personalização + 1 de Aceleração + 1 de Acompanhamento = cliente que não vai querer sair!</div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S18 · ATIVIDADE ═══════ -->
+<div class="slide" id="s18" style="background:linear-gradient(135deg,#0e071e,#08101a)">
+<div class="si gap4">
+  <div class="slide-tag tp" data-step="0">✏️ Atividade Prática · 15 min</div>
+  <h2 data-step="1">Monte <em>SUA</em> estrutura agora!</h2>
+  <div class="activity-box" data-step="2">
+    <div style="font-family:'Syne',sans-serif;font-size:clamp(10px,.95vw,13px);color:var(--muted);">Escolha seu modelo: <strong style="color:var(--purple)">Mentoria</strong> ou <strong style="color:var(--teal)">Serviço</strong></div>
+    <div class="astep">
+      <div class="anum">1</div>
+      <div class="atext"><strong>Desenhe sua Jornada simples:</strong> Onboarding → Implementação → Resultados → Renovação. Escreva 1 entregável por etapa.</div>
+    </div>
+    <div class="astep">
+      <div class="anum">2</div>
+      <div class="atext"><strong>Escolha 3 entregáveis (1 de cada tipo):</strong><br/>
+        · 1 de <span class="gold">✨ Personalização</span> (ex: diagnóstico individual)<br/>
+        · 1 de <span class="teal">⚡ Aceleração</span> (ex: checklist de 30 dias)<br/>
+        · 1 de <span class="purp">📊 Acompanhamento</span> (ex: check-in semanal)
+      </div>
+    </div>
+    <div class="astep">
+      <div class="anum">3</div>
+      <div class="atext"><strong>Compartilhe no chat ou grupo!</strong> Coloca lá em 3 linhas e eu aprovo ao vivo 👊</div>
+    </div>
+  </div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+<!-- ═══════ S19 · EQUAÇÃO ═══════ -->
+<div class="slide" id="s19" style="background:radial-gradient(ellipse at 50% 0%,#1a1208,#08080f)">
+<div class="si gap4">
+  <div class="slide-tag tg" data-step="0">🏁 Fechamento</div>
+  <h2 data-step="1">A equação que muda tudo</h2>
+  <div class="flex1 col center gap6" data-step="2">
+    <div style="display:flex;align-items:center;gap:clamp(8px,1vw,14px);flex-wrap:wrap;justify-content:center;">
+      <div style="background:var(--card2);border:1px solid #f0b42933;border-radius:10px;padding:clamp(10px,1.2vw,16px) clamp(14px,1.6vw,22px);text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:clamp(8px,.75vw,10px);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">Entrega</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,1.8vw,24px);font-weight:700;color:var(--gold);">Estruturada</div>
+      </div>
+      <div style="font-size:clamp(18px,2vw,28px);color:var(--gold);">→</div>
+      <div style="background:var(--card2);border:1px solid #00c9a733;border-radius:10px;padding:clamp(10px,1.2vw,16px) clamp(14px,1.6vw,22px);text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:clamp(8px,.75vw,10px);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">Clientes</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,1.8vw,24px);font-weight:700;color:var(--teal);">Felizes</div>
+      </div>
+      <div style="font-size:clamp(18px,2vw,28px);color:var(--gold);">→</div>
+      <div style="background:var(--card2);border:1px solid #8b5cf633;border-radius:10px;padding:clamp(10px,1.2vw,16px) clamp(14px,1.6vw,22px);text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:clamp(8px,.75vw,10px);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">LTV +</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,1.8vw,24px);font-weight:700;color:var(--purple);">Indicações</div>
+      </div>
+      <div style="font-size:clamp(18px,2vw,28px);color:var(--gold);">→</div>
+      <div style="background:linear-gradient(135deg,#f0b42920,#00c9a712);border:1px solid #f0b42950;border-radius:10px;padding:clamp(10px,1.2vw,16px) clamp(14px,1.6vw,22px);text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:clamp(8px,.75vw,10px);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">Meta</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,1.8vw,24px);font-weight:700;color:var(--gold);">R$30k+/mês</div>
+      </div>
+    </div>
+    <div style="font-family:'Syne',sans-serif;max-width:560px;text-align:center;font-size:clamp(11px,1.1vw,14px);color:var(--muted);line-height:1.75;">
+      Não é sobre vender mais. É sobre <strong style="color:var(--white)">entregar tão bem</strong> que os clientes ficam, renovam e trazem novos clientes de graça.<br/>
+      Isso é o método <strong style="color:var(--gold)">SDA: Simples, Direcionado, Acelerado.</strong>
+    </div>
+  </div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+
+<!-- ═══════ S21 · CTA FINAL ═══════ -->
+<div class="slide" id="s21" style="background:radial-gradient(ellipse at 50% 50%,#1a0e2a,#08080f)">
+<div class="si center gap6" style="text-align:center;">
+  <div data-step="0" style="font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4.5vw,54px);font-weight:700;color:var(--white);line-height:1.1;">
+    Pronto para o<br/><span class="gold">próximo nível?</span> 🚀
+  </div>
+  <div data-step="1" style="font-family:'Syne',sans-serif;font-size:clamp(12px,1.2vw,15px);color:var(--muted);max-width:480px;line-height:1.75;">
+    Se você quer implementar isso com suporte direto, escalar para R$30k–50k/mês e ter um sistema comercial completo…
+  </div>
+  <div data-step="2" style="background:linear-gradient(135deg,#f0b42918,#8b5cf614);border:1px solid #f0b42940;border-radius:14px;padding:clamp(16px,2vw,24px) clamp(24px,3vw,40px);display:flex;flex-direction:column;align-items:center;gap:10px;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,1.8vw,22px);font-weight:700;color:var(--gold);">⚡ High Level · Programa Avançado</div>
+    <div style="font-family:'Syne',sans-serif;font-size:clamp(11px,1.1vw,13px);color:#c4c2de;max-width:380px;">Acompanhamento intensivo, comunidade VIP e implementação guiada semana a semana</div>
+    <a href="https://wa.me/5584981282057" target="_blank" style="background:var(--gold);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(11px,1.1vw,14px);padding:clamp(10px,1.1vw,14px) clamp(20px,2.5vw,32px);border-radius:8px;letter-spacing:.04em;text-decoration:none;display:inline-block;">
+      📲 QUERO SER HIGH LEVEL
+    </a>
+  </div>
+  <div data-step="3" style="font-family:'Syne',sans-serif;font-size:clamp(10px,.95vw,12px);color:var(--muted);">
+    Obrigado por estar aqui. Você não é o mesmo que entrou na Aula 1. 🏆<br/>
+    <span style="color:var(--gold);font-family:'Cormorant Garamond',serif;font-weight:700;font-size:clamp(12px,1.2vw,16px);">Aceleradora High Start</span> · Simples, Direcionado, Acelerado.
+  </div>
+</div>
+<div id="step-indicator"></div>
+</div>
+
+      </div><!-- end #stage -->
+    </div><!-- end #stage-wrap -->
+  </div><!-- end #stage-area -->
+
+</div><!-- end #main -->
+
+<!-- BOTTOM BAR -->
+<div id="bottombar">
+  <kbd>←</kbd> <kbd>→</kbd> navegar &nbsp;·&nbsp; <kbd>Space</kbd> avançar passo &nbsp;·&nbsp; clique no slide para avançar
+</div>
+
+</div><!-- end #app -->
+
+<script>
+const SLIDES = [
+  {id:'s1',  label:'Abertura',        section:null},
+  {id:'s2',  label:'Recap',           section:null},
+  {id:'s3',  label:'Por Quê?',        section:null},
+  {id:'s4',  label:'3 Pilares',       section:null},
+  {id:'s5',  label:'— Jornada',       section:'1. JORNADA'},
+  {id:'s6',  label:'Mapa',            section:null},
+  {id:'s7',  label:'Mentoria vs Srv', section:null},
+  {id:'s8',  label:'— Renovação',     section:'2. RENOVAÇÃO'},
+  {id:'s9',  label:'Estratégias',     section:null},
+  {id:'s10', label:'LTV',             section:null},
+  {id:'s11', label:'— Acompanham.',   section:'3. ACOMPANHAMENTO'},
+  {id:'s12', label:'Personal. 1',     section:null},
+  {id:'s13', label:'Personal. 2',     section:null},
+  {id:'s14', label:'Aceleração',      section:null},
+  {id:'s15', label:'Acompanhamento M.',    section:null},
+  {id:'s16', label:'Acompanhamento S.',    section:null},
+  {id:'s17', label:'Resumo',          section:null},
+  {id:'s18', label:'✏️ Atividade',    section:'FECHAMENTO'},
+  {id:'s19', label:'Equação',         section:null},
+  {id:'s21', label:'🚀 CTA Final',    section:null},
+];
+
+const total = SLIDES.length;
+let cur = 0, curStep = 0;
+
+// Build sidebar
+const sidebar = document.getElementById('sidebar');
+let lastSection = null;
+SLIDES.forEach((s, i) => {
+  if (s.section && s.section !== lastSection) {
+    const sep = document.createElement('div');
+    sep.className = 'sthumb-section';
+    sep.textContent = s.section;
+    sidebar.appendChild(sep);
+    lastSection = s.section;
+  }
+  const t = document.createElement('div');
+  t.className = 'sthumb' + (i===0?' active':'');
+  t.innerHTML = `<span class="sthumb-num">${String(i+1).padStart(2,'0')}</span><span class="sthumb-label">${s.label}</span>`;
+  t.onclick = () => goTo(i, 0);
+  sidebar.appendChild(t);
+});
+
+function getSteps(id) {
+  return Array.from(document.getElementById(id).querySelectorAll('[data-step]'))
+    .sort((a,b) => +a.dataset.step - +b.dataset.step);
+}
+
+function buildIndicator(id, count) {
+  const ind = document.querySelector(`#${id} #step-indicator`);
+  if (!ind) return;
+  ind.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const d = document.createElement('div');
+    d.className = 'sdot';
+    ind.appendChild(d);
+  }
+}
+
+function updateIndicator(id, step) {
+  const ind = document.querySelector(`#${id} #step-indicator`);
+  if (!ind) return;
+  ind.querySelectorAll('.sdot').forEach((d,i) => d.classList.toggle('on', i <= step));
+}
+
+function revealUpTo(id, stepIdx) {
+  const steps = getSteps(id);
+  steps.forEach((el, i) => el.classList.toggle('on', i <= stepIdx));
+  updateIndicator(id, stepIdx);
+}
+
+function resetSlide(id) {
+  getSteps(id).forEach(el => el.classList.remove('on'));
+  updateIndicator(id, -1);
+}
+
+// Init
+SLIDES.forEach(s => {
+  buildIndicator(s.id, getSteps(s.id).length);
+  resetSlide(s.id);
+});
+
+function goTo(n, step=0) {
+  // exit current
+  const prevEl = document.getElementById(SLIDES[cur].id);
+  prevEl.classList.remove('active');
+  prevEl.classList.add('exit');
+  setTimeout(() => prevEl.classList.remove('exit'), 250);
+  document.querySelectorAll('.sthumb')[cur].classList.remove('active');
+  resetSlide(SLIDES[cur].id);
+
+  cur = Math.max(0, Math.min(total-1, n));
+  curStep = step;
+
+  const nextEl = document.getElementById(SLIDES[cur].id);
+  nextEl.classList.add('active');
+  document.querySelectorAll('.sthumb')[cur].classList.add('active');
+  revealUpTo(SLIDES[cur].id, curStep);
+
+  document.getElementById('counter').textContent = `${cur+1} / ${total}`;
+  document.getElementById('progress-fill').style.width = `${(cur+1)/total*100}%`;
+  document.getElementById('btnPrev').disabled = cur===0 && curStep===0;
+  document.getElementById('btnNext').disabled = cur===total-1 && curStep>=getSteps(SLIDES[cur].id).length-1;
+
+  // scroll sidebar thumb into view
+  document.querySelectorAll('.sthumb')[cur].scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function advance() {
+  const steps = getSteps(SLIDES[cur].id);
+  if (curStep < steps.length-1) {
+    curStep++;
+    revealUpTo(SLIDES[cur].id, curStep);
+    document.getElementById('btnPrev').disabled = false;
+    document.getElementById('btnNext').disabled = cur===total-1 && curStep>=steps.length-1;
+  } else if (cur < total-1) {
+    goTo(cur+1, 0);
+  }
+}
+
+function retreat() {
+  if (curStep > 0) {
+    curStep--;
+    revealUpTo(SLIDES[cur].id, curStep);
+    document.getElementById('btnPrev').disabled = cur===0 && curStep===0;
+    document.getElementById('btnNext').disabled = false;
+  } else if (cur > 0) {
+    goTo(cur-1, getSteps(SLIDES[cur-1].id).length-1);
+  }
+}
+
+function prev() { retreat(); }
+function next() { advance(); }
+
+document.getElementById('stage').addEventListener('click', e => {
+  if (!e.target.closest('button')) advance();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowRight'||e.key===' ') { e.preventDefault(); advance(); }
+  if (e.key==='ArrowLeft')  { e.preventDefault(); retreat(); }
+});
+
+// Fit stage to viewport
+function fitStage() {
+  const wrap = document.getElementById('stage-wrap');
+  const stage = document.getElementById('stage');
+  if (!wrap || !stage) return;
+  const pw = wrap.clientWidth  - 32;
+  const ph = wrap.clientHeight - 32;
+  const fromH = ph * 16 / 9;
+  const w = Math.min(pw, fromH);
+  stage.style.width  = w + 'px';
+  stage.style.height = (w * 9 / 16) + 'px';
+}
+window.addEventListener('resize', fitStage);
+fitStage();
+
+goTo(0, 0);
+</script>
+</body>
+</html>
